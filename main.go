@@ -16,20 +16,46 @@ func moveCursorUp(lines int) {
 	fmt.Printf("\033[%dA", lines)
 }
 
-// func clearCurrentLine() {
-// 	fmt.Printf("\033[2K")
-// }
+func clearCurrentLine() {
+	fmt.Printf("\033[2K")
+}
+
+func writeSpinnerLine(frame int, kind int) {
+	switch kind {
+	case 0:
+		fmt.Printf("\rSpinner 1: %s\n", Spinner[frame%(len(Spinner))])
+	case 1:
+		fmt.Printf("\rSpinner 2: %s\n", Spinner2[frame%(len(Spinner2))])
+	case 2:
+		fmt.Printf("\rSpinner 3: %s\n", Spinner3[frame%(len(Spinner3))])
+	case 3:
+		fmt.Printf("\rSpinner 4: %s\n", Spinner4[frame%(len(Spinner4))])
+	default:
+		fmt.Printf("\rSpinners : %s%s%s%s\n", Spinner[frame%(len(Spinner))], Spinner[(frame+1)%(len(Spinner))], Spinner[(frame+2)%(len(Spinner))], Spinner[(frame+3)%(len(Spinner))])
+	}
+}
 
 func main() {
-	for i := 0; i < 50; i++ {
-		if i > 0 {
-			moveCursorUp(5)
+	const linesInit = 5
+	lines := linesInit
+	for frame := 0; frame < 50; frame++ {
+		if frame > 0 {
+			for i := 0; i < lines; i++ {
+				clearCurrentLine()
+				moveCursorUp(1)
+			}
+			lines = linesInit + frame%10
 		}
-		fmt.Printf("\rSpinner 1: %s\n", Spinner[i%(len(Spinner))])
-		fmt.Printf("\rSpinner 2: %s\n", Spinner2[i%(len(Spinner2))])
-		fmt.Printf("\rSpinner 3: %s\n", Spinner3[i%(len(Spinner3))])
-		fmt.Printf("\rSpinner 4: %s\n", Spinner4[i%(len(Spinner4))])
-		fmt.Printf("\rSpinners : %s%s%s%s\n", Spinner[i%(len(Spinner))], Spinner[(i+1)%(len(Spinner))], Spinner[(i+2)%(len(Spinner))], Spinner[(i+3)%(len(Spinner))])
+
+		for i := 0; i < lines; i++ {
+			writeSpinnerLine(frame, i%5)
+		}
+
 		time.Sleep(100 * time.Millisecond)
+	}
+
+	for i := 0; i < lines-linesInit; i++ {
+		clearCurrentLine()
+		moveCursorUp(1)
 	}
 }
