@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
+
+	"golang.org/x/term"
 )
 
 var Spinner = [4]string{"|", "/", "-", "\\"}
@@ -35,27 +38,48 @@ func writeSpinnerLine(frame int, kind int) {
 	}
 }
 
+func getTerminalHeight() (int, error) {
+	_, height, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		fmt.Println("Failed to get terminal size", err)
+		return -1, err
+	}
+	return height, nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func main() {
-	const linesInit = 5
+	height, err := getTerminalHeight()
+	if err != nil {
+		return
+	}
+	linesInit := min(5, height/2)
+
 	lines := linesInit
-	for frame := 0; frame < 50; frame++ {
+	for frame := 0; frame < 100; frame++ {
 		if frame > 0 {
 			for i := 0; i < lines; i++ {
 				clearCurrentLine()
 				moveCursorUp(1)
 			}
-			lines = linesInit + frame%10
+
+			height, err := getTerminalHeight()
+			if err != nil {
+				return
+			}
+			lines = min(linesInit+frame%200, height-2)
 		}
 
 		for i := 0; i < lines; i++ {
 			writeSpinnerLine(frame, i%5)
 		}
 
-		time.Sleep(100 * time.Millisecond)
-	}
-
-	for i := 0; i < lines-linesInit; i++ {
-		clearCurrentLine()
-		moveCursorUp(1)
+		time.Sleep(50 * time.Millisecond)
 	}
 }
