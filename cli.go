@@ -29,10 +29,15 @@ func (c *CLI) Run(args []string) int {
 		return 1
 	}
 
-	terminal := NewTerminal(c.outStream, c.outFd)
+	terminal, err := NewTerminal(c.outStream, c.outFd)
+	if err != nil {
+		fmt.Fprintln(c.errStream, "Failed to initialize terminal:", err)
+		return 1
+	}
 
 	height, err := terminal.getHeight()
 	if err != nil {
+		fmt.Fprintln(c.errStream, err)
 		return 1
 	}
 	linesInit := min(5, height/2)

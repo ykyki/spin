@@ -12,11 +12,14 @@ type Terminal struct {
 	outFd     int
 }
 
-func NewTerminal(outStream io.Writer, outFd int) *Terminal {
+func NewTerminal(outStream io.Writer, outFd int) (*Terminal, error) {
+	if !term.IsTerminal(outFd) {
+		return nil, fmt.Errorf("not a terminal")
+	}
 	return &Terminal{
 		outStream: outStream,
 		outFd:     outFd,
-	}
+	}, nil
 }
 
 func (t *Terminal) getHeight() (int, error) {
