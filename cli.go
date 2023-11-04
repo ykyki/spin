@@ -59,42 +59,39 @@ func doMain(ctx context.Context, cli *CLI) <-chan int {
 			return
 		}
 
-		height, err := terminal.getHeight()
-		if err != nil {
-			fmt.Fprintln(cli.errStream, "Failed to get terminal height:", err)
-			out <- 1
-
-			return
-		}
-
-		linesInit := min(5, height/2)
-		lines := linesInit
+		renderedLineCount := 0
 
 		for frame := 0; frame < 100; {
 			select {
 			case <-ctx.Done():
 				return
 			case <-time.After(50 * time.Millisecond):
-				if frame > 0 {
-					for i := 0; i < lines; i++ {
-						terminal.clearCurrentLine()
-						terminal.moveCursorUp(1)
-					}
+				// clear previous lines
+				for i := 0; i < renderedLineCount; i++ {
+					terminal.clearCurrentLine()
+					terminal.moveCursorUp(1)
+				}
 
+				var maxLineCount int
+				{
 					height, err := terminal.getHeight()
 					if err != nil {
-						out <- 0
+						out <- 1
+
+						fmt.Fprintln(cli.errStream, "Failed to get terminal height:", err)
 
 						return
 					}
-
-					lines = min(linesInit+frame%200, height-2)
+					maxLineCount = height - 2
 				}
 
-				for i := 0; i < lines; i++ {
+				lineCount := min(maxLineCount, frame/5)
+
+				for i := 0; i < lineCount; i++ {
 					terminal.writeSpinnerLine(frame, i%5)
 				}
 
+				renderedLineCount = lineCount
 				frame++
 			}
 		}
