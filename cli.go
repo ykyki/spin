@@ -68,21 +68,13 @@ func doMain(ctx context.Context, cli *CLI) <-chan int {
 		}
 
 		linesInit := min(5, height/2)
-
 		lines := linesInit
-		frame := 0
 
-		for {
+		for frame := 0; frame < 100; {
 			select {
 			case <-ctx.Done():
 				return
 			case <-time.After(50 * time.Millisecond):
-				if frame >= 100 {
-					fmt.Fprintln(cli.outStream, "Done!")
-
-					return
-				}
-
 				if frame > 0 {
 					for i := 0; i < lines; i++ {
 						terminal.clearCurrentLine()
