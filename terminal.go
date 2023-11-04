@@ -45,13 +45,19 @@ func (t *Terminal) clearCurrentLine() {
 func (t *Terminal) writeSpinnerLine(frame int, kind int) {
 	switch kind {
 	case 0:
-		fmt.Fprintf(t.outStream, "\rSpinner 1: %s\n", Spinner[frame%(len(Spinner))])
+		fmt.Fprintf(t.outStream,
+			"\rSpinner 1: %s (%05d)\n", Spinner[frame%(len(Spinner))],
+			frame,
+		)
 	case 1:
 		fmt.Fprintf(t.outStream, "\rSpinner 2: %s\n", Spinner2[frame%(len(Spinner2))])
 	case 2:
 		fmt.Fprintf(t.outStream, "\rSpinner 3: %s\n", Spinner3[frame%(len(Spinner3))])
 	case 3:
-		fmt.Fprintf(t.outStream, "\rSpinner 4: %s\n", Spinner4[frame%(len(Spinner4))])
+		fmt.Fprintf(t.outStream,
+			"\rSpinner 4: %s (%05d)\n", Spinner4[(frame/10)%(len(Spinner4))],
+			frame,
+		)
 	default:
 		fmt.Fprintf(
 			t.outStream,

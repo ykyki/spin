@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
@@ -59,14 +60,40 @@ func doMain(ctx context.Context, cli *CLI) <-chan int {
 			return
 		}
 
+		inputCh := make(chan string, 10)
+		go func() {
+			defer close(inputCh)
+
+			scanner := bufio.NewScanner(cli.inStream)
+
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(5 * time.Millisecond):
+					if !scanner.Scan() {
+						return
+					}
+					inputCh <- scanner.Text()
+				}
+			}
+		}()
+
+		var inputBuf []string
+
 		renderedLineCount := 0
 
-		for frame := 0; frame < 100; {
+		for frame := 0; ; {
 			select {
 			case <-ctx.Done():
 				return
-			case <-time.After(50 * time.Millisecond):
-				// clear previous lines
+			case newLine, ok := <-inputCh:
+				if !ok {
+					return
+				}
+
+				inputBuf = append(inputBuf, newLine)
+
 				for i := 0; i < renderedLineCount; i++ {
 					terminal.clearCurrentLine()
 					terminal.moveCursorUp(1)
@@ -85,13 +112,16 @@ func doMain(ctx context.Context, cli *CLI) <-chan int {
 					maxLineCount = height - 2
 				}
 
-				lineCount := min(maxLineCount, frame/5)
+				l := len(inputBuf)
+				lineCount := min(maxLineCount, l)
+
+				terminal.writeSpinnerLine(frame, 3)
 
 				for i := 0; i < lineCount; i++ {
-					terminal.writeSpinnerLine(frame, i%5)
+					fmt.Fprintf(terminal.outStream, "%s\n", inputBuf[l-lineCount+i])
 				}
 
-				renderedLineCount = lineCount
+				renderedLineCount = lineCount + 1
 				frame++
 			}
 		}
