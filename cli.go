@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -23,45 +24,80 @@ func NewCLIStd() *CLI {
 	}
 }
 
-func (c *CLI) Run(args []string) int {
+func (cli *CLI) Run(args []string) int {
 	if len(args) > 1 {
-		fmt.Fprintln(c.errStream, "option not supported")
+		fmt.Fprintln(cli.errStream, "option not supported")
 		return 1
 	}
 
-	terminal, err := NewTerminal(c.outStream, c.outFd)
-	if err != nil {
-		fmt.Fprintln(c.errStream, "Failed to initialize terminal:", err)
-		return 1
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	for {
+		select {
+		case sig := <-watchSignal(ctx):
+			fmt.Fprintf(cli.errStream, "Received signal: %s\n", sig)
+			return 1
+		case result := <-doMain(ctx, cli):
+			return result
+		}
 	}
+}
 
-	height, err := terminal.getHeight()
-	if err != nil {
-		fmt.Fprintln(c.errStream, err)
-		return 1
-	}
-	linesInit := min(5, height/2)
+func doMain(ctx context.Context, cli *CLI) <-chan int {
+	out := make(chan int, 1)
+	go func() {
+		defer close(out)
 
-	lines := linesInit
-	for frame := 0; frame < 100; frame++ {
-		if frame > 0 {
-			for i := 0; i < lines; i++ {
-				terminal.clearCurrentLine()
-				terminal.moveCursorUp(1)
-			}
-
-			height, err := terminal.getHeight()
-			if err != nil {
-				return 1
-			}
-			lines = min(linesInit+frame%200, height-2)
+		terminal, err := NewTerminal(cli.outStream, cli.outFd)
+		if err != nil {
+			fmt.Fprintln(cli.errStream, "Failed to initialize terminal:", err)
+			out <- 1
+			return
 		}
 
-		for i := 0; i < lines; i++ {
-			terminal.writeSpinnerLine(frame, i%5)
+		height, err := terminal.getHeight()
+		if err != nil {
+			fmt.Fprintln(cli.errStream, "Failed to get terminal height:", err)
+			out <- 1
+			return
 		}
+		linesInit := min(5, height/2)
 
-		time.Sleep(50 * time.Millisecond)
-	}
-	return 0
+		lines := linesInit
+		frame := 0
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(50 * time.Millisecond):
+				if frame >= 100 {
+					fmt.Fprintln(cli.outStream, "Done!")
+					return
+				}
+
+				if frame > 0 {
+					for i := 0; i < lines; i++ {
+						terminal.clearCurrentLine()
+						terminal.moveCursorUp(1)
+					}
+
+					height, err := terminal.getHeight()
+					if err != nil {
+						out <- 0
+						return
+					}
+					lines = min(linesInit+frame%200, height-2)
+				}
+
+				for i := 0; i < lines; i++ {
+					terminal.writeSpinnerLine(frame, i%5)
+				}
+
+				frame++
+			}
+		}
+	}()
+	return out
 }
