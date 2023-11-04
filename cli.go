@@ -27,6 +27,7 @@ func NewCLIStd() *CLI {
 func (cli *CLI) Run(args []string) int {
 	if len(args) > 1 {
 		fmt.Fprintln(cli.errStream, "option not supported")
+
 		return 1
 	}
 
@@ -37,6 +38,7 @@ func (cli *CLI) Run(args []string) int {
 		select {
 		case sig := <-watchSignal(ctx):
 			fmt.Fprintf(cli.errStream, "Received signal: %s\n", sig)
+
 			return 1
 		case result := <-doMain(ctx, cli):
 			return result
@@ -53,6 +55,7 @@ func doMain(ctx context.Context, cli *CLI) <-chan int {
 		if err != nil {
 			fmt.Fprintln(cli.errStream, "Failed to initialize terminal:", err)
 			out <- 1
+
 			return
 		}
 
@@ -60,8 +63,10 @@ func doMain(ctx context.Context, cli *CLI) <-chan int {
 		if err != nil {
 			fmt.Fprintln(cli.errStream, "Failed to get terminal height:", err)
 			out <- 1
+
 			return
 		}
+
 		linesInit := min(5, height/2)
 
 		lines := linesInit
@@ -74,6 +79,7 @@ func doMain(ctx context.Context, cli *CLI) <-chan int {
 			case <-time.After(50 * time.Millisecond):
 				if frame >= 100 {
 					fmt.Fprintln(cli.outStream, "Done!")
+
 					return
 				}
 
@@ -86,8 +92,10 @@ func doMain(ctx context.Context, cli *CLI) <-chan int {
 					height, err := terminal.getHeight()
 					if err != nil {
 						out <- 0
+
 						return
 					}
+
 					lines = min(linesInit+frame%200, height-2)
 				}
 
@@ -99,5 +107,6 @@ func doMain(ctx context.Context, cli *CLI) <-chan int {
 			}
 		}
 	}()
+
 	return out
 }

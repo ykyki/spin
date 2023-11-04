@@ -1,0 +1,22 @@
+run:
+  timeout: 10m
+
+linters:
+  disable-all: false
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - gosimple
+    - misspell
+    - wsl
+    - gocognit
+  # enable-all: true
+  # disable:
+  #   - gomnd
+  #   - funlen
+
+linters-settings:
+  govet:
+    check-shadowing: true
+    enable-all: true

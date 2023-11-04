@@ -16,6 +16,7 @@ func NewTerminal(outStream io.Writer, outFd int) (*Terminal, error) {
 	if !term.IsTerminal(outFd) {
 		return nil, fmt.Errorf("not a terminal")
 	}
+
 	return &Terminal{
 		outStream: outStream,
 		outFd:     outFd,
@@ -27,6 +28,7 @@ func (t *Terminal) getHeight() (int, error) {
 	if err != nil {
 		return -1, err
 	}
+
 	return height, nil
 }
 

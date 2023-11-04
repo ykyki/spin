@@ -29,5 +29,6 @@ func watchSignal(ctx context.Context) <-chan os.Signal {
 			out <- sig
 		}
 	}()
+
 	return out
 }
