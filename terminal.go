@@ -93,10 +93,7 @@ func (t *Terminal) clearCurrentLine() {
 func (t *Terminal) writeSpinnerLine(frame int, kind SpinnerKind) {
 	switch kind {
 	case PlainSpinner:
-		fmt.Fprintf(t.outStream,
-			"\r%s (%05d)\n", PainSpinnerSeq[frame%(len(PainSpinnerSeq))],
-			frame,
-		)
+		fmt.Fprintf(t.outStream, "\r%s\n", PainSpinnerSeq[frame%(len(PainSpinnerSeq))])
 	case ColorfulSpinner:
 		fmt.Fprintf(t.outStream, "\r%s\n", ColorfulSpinnerSeq[frame%(len(ColorfulSpinnerSeq))])
 	case ArrowSpinner:
