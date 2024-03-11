@@ -68,7 +68,7 @@ func (t *Terminal) Render() {
 		}
 	}
 
-	t.writeSpinnerLine(t.frame, 3)
+	t.writeSpinnerLine(t.frame, PlainSpinner)
 
 	lineCount := min(maxLineCount, len(t.lineBuf))
 
@@ -90,30 +90,18 @@ func (t *Terminal) clearCurrentLine() {
 	fmt.Fprintf(t.outStream, "\033[2K")
 }
 
-func (t *Terminal) writeSpinnerLine(frame int, kind int) {
+func (t *Terminal) writeSpinnerLine(frame int, kind SpinnerKind) {
 	switch kind {
-	case 0:
+	case PlainSpinner:
 		fmt.Fprintf(t.outStream,
-			"\rSpinner 1: %s (%05d)\n", Spinner[frame%(len(Spinner))],
+			"\r%s (%05d)\n", PainSpinnerSeq[frame%(len(PainSpinnerSeq))],
 			frame,
 		)
-	case 1:
-		fmt.Fprintf(t.outStream, "\rSpinner 2: %s\n", Spinner2[frame%(len(Spinner2))])
-	case 2:
-		fmt.Fprintf(t.outStream, "\rSpinner 3: %s\n", Spinner3[frame%(len(Spinner3))])
-	case 3:
-		fmt.Fprintf(t.outStream,
-			"\rSpinner 4: %s (%05d)\n", Spinner4[frame%(len(Spinner4))],
-			frame,
-		)
-	default:
-		fmt.Fprintf(
-			t.outStream,
-			"\rSpinners : %s%s%s%s\n",
-			Spinner[frame%(len(Spinner))],
-			Spinner[(frame+1)%(len(Spinner))],
-			Spinner[(frame+2)%(len(Spinner))],
-			Spinner[(frame+3)%(len(Spinner))],
-		)
+	case ColorfulSpinner:
+		fmt.Fprintf(t.outStream, "\r%s\n", ColorfulSpinnerSeq[frame%(len(ColorfulSpinnerSeq))])
+	case ArrowSpinner:
+		fmt.Fprintf(t.outStream, "\r%s\n", ArrowSpinnerSeq[frame%(len(ArrowSpinnerSeq))])
+	case EmojiArrowSpinner:
+		fmt.Fprintf(t.outStream, "\r%s\n", EmojiArrowSpinnerSeq[frame%(len(EmojiArrowSpinnerSeq))])
 	}
 }
