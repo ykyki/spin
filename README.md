@@ -1,6 +1,6 @@
 # spin
 
-![capture-2024-03-12](https://github.com/ykyki/spin/assets/60519062/34a0942b-d2ca-478d-9b8b-0f23834bd14e)
+![capture_2024-03-12b](https://github.com/ykyki/spin/assets/60519062/8776bc45-bcd9-47f2-8cee-4a64a36e65fa)
 
 ## Install
 
