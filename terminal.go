@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"time"
 
 	"golang.org/x/term"
 )
@@ -52,7 +53,7 @@ func (t *Terminal) getHeight() (int, error) {
 	return height, nil
 }
 
-func (t *Terminal) Render() {
+func (t *Terminal) Render(duration time.Duration) {
 	for i := 0; i < t.prevLineCount; i++ {
 		t.clearCurrentLine()
 		t.moveCursorUp(1)
@@ -68,7 +69,10 @@ func (t *Terminal) Render() {
 		}
 	}
 
+	t.writeCarriageReturn()
 	t.writeSpinnerLine(t.frame, PlainSpinner)
+	t.writeString(fmt.Sprintf(" %.1fs", duration.Seconds()))
+	t.writeNewLine()
 
 	lineCount := min(maxLineCount, len(t.lineBuf))
 
@@ -90,15 +94,27 @@ func (t *Terminal) clearCurrentLine() {
 	fmt.Fprintf(t.outStream, "\033[2K")
 }
 
+func (t *Terminal) writeNewLine() {
+	fmt.Fprintf(t.outStream, "\n")
+}
+
+func (t *Terminal) writeCarriageReturn() {
+	fmt.Fprintf(t.outStream, "\r")
+}
+
 func (t *Terminal) writeSpinnerLine(frame int, kind SpinnerKind) {
 	switch kind {
 	case PlainSpinner:
-		fmt.Fprintf(t.outStream, "\r%s\n", PainSpinnerSeq[frame%(len(PainSpinnerSeq))])
+		fmt.Fprintf(t.outStream, "%s", PainSpinnerSeq[frame%(len(PainSpinnerSeq))])
 	case ColorfulSpinner:
-		fmt.Fprintf(t.outStream, "\r%s\n", ColorfulSpinnerSeq[frame%(len(ColorfulSpinnerSeq))])
+		fmt.Fprintf(t.outStream, "%s", ColorfulSpinnerSeq[frame%(len(ColorfulSpinnerSeq))])
 	case ArrowSpinner:
-		fmt.Fprintf(t.outStream, "\r%s\n", ArrowSpinnerSeq[frame%(len(ArrowSpinnerSeq))])
+		fmt.Fprintf(t.outStream, "%s", ArrowSpinnerSeq[frame%(len(ArrowSpinnerSeq))])
 	case EmojiArrowSpinner:
-		fmt.Fprintf(t.outStream, "\r%s\n", EmojiArrowSpinnerSeq[frame%(len(EmojiArrowSpinnerSeq))])
+		fmt.Fprintf(t.outStream, "%s", EmojiArrowSpinnerSeq[frame%(len(EmojiArrowSpinnerSeq))])
 	}
+}
+
+func (t *Terminal) writeString(s string) {
+	fmt.Fprintf(t.outStream, "%s", s)
 }

@@ -20,15 +20,17 @@ func mainWorker(ctx context.Context, cli *CLI) int {
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
+	start := time.Now()
+
 	for {
 		select {
 		case <-ctx.Done():
 			return 1
 		case <-ticker.C:
-			terminal.Render()
+			terminal.Render(time.Since(start))
 		case newLine, ok := <-inputCh:
 			if !ok {
-				terminal.Render()
+				terminal.Render(time.Since(start))
 				return 0
 			}
 
